@@ -13,8 +13,21 @@ class UploadUserCommand extends AbstractCommand
 
     protected function process(): int
     {
-        // logic to be implemented here
         $this->loadUsersFromFile();
+
+        $errors = $this->validateUsers();
+
+        if (!empty($errors)) {
+            $this->console->lines($errors);
+        }
+
+        if ($this->isDryRun()) {
+            $this->console->line('Dry run mode detected. No change will be made to the database.');
+
+            exit(0);
+        }
+
+        $this->formatUsers();
 
         $this->console->line('done');
 
@@ -72,5 +85,73 @@ class UploadUserCommand extends AbstractCommand
 
             exit(1);
         }
+    }
+
+    private function validateUsers(): array
+    {
+        $errors = [];
+        $validatedUsers = [];
+
+        foreach ($this->userData as $index => $userData) {
+            $email = strtolower(trim($userData[2] ?? ''));
+
+            // skip header row
+            if ($email === 'email') {
+                continue;
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                // row in csv file starts at 1 while in php, it starts at 0
+                $errors[] = 'Email: ' . $email . ' at row ' . ($index + 1) . ' has invalid format.';
+
+                continue;
+            }
+
+            $validatedUsers[] = $userData;
+        }
+
+        $this->userData = $validatedUsers;
+
+        return $errors;
+    }
+
+    private function formatUsers(): void
+    {
+        $formattedUsers = [];
+
+        foreach ($this->userData as $index => $userData) {
+            // skip header row
+            if (strtolower(trim($userData[0] ?? '')) === 'name') {
+                continue;
+            }
+
+            $name = ucfirst(strtolower(trim($userData[0] ?? '')));
+            if (empty($name)) {
+                continue;
+            }
+
+            $surname = ucfirst(strtolower(trim($userData[1] ?? '')));
+            if (empty($surname)) {
+                continue;
+            }
+
+            $email = strtolower(trim($userData[2] ?? ''));
+            if (empty($email)) {
+                continue;
+            }
+
+            $formattedUsers[] = [
+                $name,
+                $surname,
+                $email,
+            ];
+        }
+
+        $this->userData = $formattedUsers;
+    }
+
+    private function isDryRun(): bool
+    {
+        return array_key_exists('dry_run', $this->options);
     }
 }
