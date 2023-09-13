@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Database;
 
 use PDO;
+use PDOException;
 
 class MySQLConnection
 {
@@ -23,7 +24,7 @@ class MySQLConnection
         $this->pdo = new PDO($dsn, $user, $password, $options);
     }
 
-    public function createUserTable(): void
+    public function createUsersTable(): void
     {
         $dropTableCommand = 'DROP TABLE IF EXISTS users';
 
@@ -43,5 +44,21 @@ class MySQLConnection
         SQL;
 
         $this->pdo->exec($createTableCommand);
+    }
+
+    public function insertIntoUsersTable(array $rows): void
+    {
+        $stmt = $this->pdo->prepare("INSERT INTO users (name, surname, email) VALUES (?,?,?)");
+
+        try {
+            $this->pdo->beginTransaction();
+            foreach ($rows as $row) {
+                $stmt->execute($row);
+            }
+            $this->pdo->commit();
+        } catch (PDOException $e) {
+            $this->pdo->rollback();
+            throw $e;
+        }
     }
 }

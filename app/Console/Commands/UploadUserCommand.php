@@ -25,35 +25,27 @@ class UploadUserCommand extends AbstractCommand
             $this->console->lines($errors);
         }
 
-        try {
-            $this->setupDatabaseConnection();
-        } catch (PDOException $e) {
-            $this->console->line($e->getMessage());
-
-            exit(1);
-        }
+        $this->setupDatabaseConnection();
 
         if ($this->isCreateTableMode()) {
-            try {
-                $this->createTable();
-            } catch (PDOException $e) {
-                $this->console->line($e->getMessage());
+            $this->console->line('Create/rebuild users table mode detected. No further change after creating/rebuilding table.' . PHP_EOL);
 
-                exit(1);
-            } finally {
-                exit(0);
-            }
+            $this->createTable();
+
+            exit(0);
         }
 
         if ($this->isDryRun()) {
-            $this->console->line('Dry run mode detected. No change will be made to the database.');
+            $this->console->line('Dry run mode detected. No change will be made to the database.' . PHP_EOL);
 
             exit(0);
         }
 
         $this->formatUsers();
 
-        $this->console->line('done');
+        $this->addUsers();
+
+        $this->console->line('Added ' . count($this->userData) . ' users');
 
         return 0;
     }
@@ -181,12 +173,18 @@ class UploadUserCommand extends AbstractCommand
 
     private function setupDatabaseConnection(): void
     {
-        $this->db = new MySQLConnection(
-            host: $this->options['host'] ?? '',
-            db: 'test', // this is an assumption as it is not mentioned in specs
-            user: $this->options['u'] ?? '',
-            password: $this->options['p'] ?? '',
-        );
+        try {
+            $this->db = new MySQLConnection(
+                host: $this->options['host'] ?? '',
+                db: 'test', // this is an assumption as it is not mentioned in specs
+                user: $this->options['u'] ?? '',
+                // password: $this->options['p'] ?? '',
+                password: '',
+            );
+        } catch (PDOException $e) {
+            $this->console->line($e->getMessage());
+            exit(1);
+        }
     }
 
     private function isCreateTableMode(): bool
@@ -196,6 +194,23 @@ class UploadUserCommand extends AbstractCommand
 
     private function createTable(): void
     {
-        $this->db->createUserTable();
+        try {
+            $this->db->createUsersTable();
+        } catch (PDOException $e) {
+            $this->console->line($e->getMessage());
+            exit(1);
+        } finally {
+            exit(0);
+        }
+    }
+
+    private function addUsers(): void
+    {
+        try {
+            $this->db->insertIntoUsersTable($this->userData);
+        } catch (PDOException $e) {
+            $this->console->line($e->getMessage());
+            exit(1);
+        }
     }
 }
