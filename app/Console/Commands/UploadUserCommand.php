@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Service\CSVParser;
+use Exception;
+
 class UploadUserCommand extends AbstractCommand
 {
+    private array $userData;
+
     protected function process(): int
     {
         // logic to be implemented here
+        $this->loadUsersFromFile();
+
         $this->console->line('done');
 
         return 0;
@@ -52,5 +59,18 @@ class UploadUserCommand extends AbstractCommand
             'p' => 'MySQL password',
             'h' => 'MySQL host',
         ];
+    }
+
+    private function loadUsersFromFile(): void
+    {
+        $csvParser = new CSVParser($this->options['file']);
+
+        try {
+            $this->userData = $csvParser->readFile();
+        } catch (Exception $e) {
+            $this->console->line($e->getMessage());
+
+            exit(1);
+        }
     }
 }
