@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Database\MySQLConnection;
 use App\Service\CSVParser;
 use Exception;
+use PDOException;
 
 class UploadUserCommand extends AbstractCommand
 {
     private array $userData;
+
+    private MySQLConnection $db;
 
     protected function process(): int
     {
@@ -19,6 +23,14 @@ class UploadUserCommand extends AbstractCommand
 
         if (!empty($errors)) {
             $this->console->lines($errors);
+        }
+
+        try {
+            $this->setupDatabaseConnection();
+        } catch (PDOException $e) {
+            $this->console->line($e->getMessage());
+
+            exit(1);
         }
 
         if ($this->isDryRun()) {
@@ -153,5 +165,15 @@ class UploadUserCommand extends AbstractCommand
     private function isDryRun(): bool
     {
         return array_key_exists('dry_run', $this->options);
+    }
+
+    private function setupDatabaseConnection(): void
+    {
+        $this->db = new MySQLConnection(
+            host: $this->options['host'] ?? '',
+            db: 'test', // this is an assumption as it is not mentioned in specs
+            user: $this->options['u'] ?? '',
+            password: $this->options['p'] ?? '',
+        );
     }
 }
