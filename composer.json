@@ -1,0 +1,16 @@
+{
+    "name": "steven/php-code-challenges",
+    "description": "Some code challenges in PHP",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Steven Cao"
+        }
+    ],
+    "require": {}
+}
