@@ -22,4 +22,26 @@ class MySQLConnection
 
         $this->pdo = new PDO($dsn, $user, $password, $options);
     }
+
+    public function createUserTable(): void
+    {
+        $dropTableCommand = 'DROP TABLE IF EXISTS users';
+
+        $this->pdo->exec($dropTableCommand);
+
+        $createTableCommand = <<<SQL
+            CREATE TABLE users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                surname VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                created_at DATETIME DEFAULT NOW(),
+                updated_at DATETIME,
+                deleted_at DATETIME,
+                UNIQUE KEY(email)
+            );
+        SQL;
+
+        $this->pdo->exec($createTableCommand);
+    }
 }
