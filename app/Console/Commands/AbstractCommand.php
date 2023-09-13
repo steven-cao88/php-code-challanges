@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Console\Console;
+use Exception;
 
 abstract class AbstractCommand implements CommandInterface
 {
@@ -28,6 +29,14 @@ abstract class AbstractCommand implements CommandInterface
             return 0;
         }
 
+        try {
+            $this->validateOptions();
+        } catch (Exception $e) {
+            print $e->getMessage() . PHP_EOL;
+
+            exit(1);
+        }
+
         return $this->process();
     }
 
@@ -48,6 +57,22 @@ abstract class AbstractCommand implements CommandInterface
             shortOptions: $this->getShortOptionDefinitions(),
             longOptions: $this->getLongOptionDefinitionsWithHelp(),
         );
+    }
+
+    protected function getRequiredOptions(): array
+    {
+        return [];
+    }
+
+    protected function validateOptions(): void
+    {
+        $options = $this->options;
+
+        foreach ($this->getRequiredOptions() as $requiredOption => $optionName) {
+            if (!array_key_exists($requiredOption, $options) || ($options[$requiredOption] ?? false) === false) {
+                throw new Exception('Missing ' . $optionName);
+            }
+        }
     }
 
     private function getLongOptionDefinitionsWithHelp(): array

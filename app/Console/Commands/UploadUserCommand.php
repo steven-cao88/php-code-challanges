@@ -9,6 +9,7 @@ class UploadUserCommand extends AbstractCommand
     protected function process(): int
     {
         // logic to be implemented here
+        $this->console->line('done');
 
         return 0;
     }
@@ -40,6 +41,16 @@ class UploadUserCommand extends AbstractCommand
             '-p – MySQL password',
             '-h – MySQL host',
             '--help – which will output the above list of directives with details.'
+        ];
+    }
+
+    protected function getRequiredOptions(): array
+    {
+        return [
+            'file' => 'file name',
+            'u' => 'MySQL username',
+            'p' => 'MySQL password',
+            'h' => 'MySQL host',
         ];
     }
 }
