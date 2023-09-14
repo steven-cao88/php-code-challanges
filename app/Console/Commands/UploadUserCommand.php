@@ -25,18 +25,18 @@ class UploadUserCommand extends AbstractCommand
             $this->console->lines($errors);
         }
 
+        if ($this->isDryRun()) {
+            $this->console->line('Dry run mode detected. No change will be made to the database.' . PHP_EOL);
+
+            return 0;
+        }
+
         $this->setupDatabaseConnection();
 
         if ($this->isCreateTableMode()) {
             $this->console->line('Create/rebuild users table mode detected. No further change after creating/rebuilding table.' . PHP_EOL);
 
             $this->createTable();
-
-            return 0;
-        }
-
-        if ($this->isDryRun()) {
-            $this->console->line('Dry run mode detected. No change will be made to the database.' . PHP_EOL);
 
             return 0;
         }
