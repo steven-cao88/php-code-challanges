@@ -178,8 +178,7 @@ class UploadUserCommand extends AbstractCommand
                 host: $this->options['host'] ?? '',
                 db: 'test', // this is an assumption as it is not mentioned in specs
                 user: $this->options['u'] ?? '',
-                // password: $this->options['p'] ?? '',
-                password: '',
+                password: $this->options['p'] ?? '',
             );
         } catch (PDOException $e) {
             $this->console->line($e->getMessage());
