@@ -32,13 +32,13 @@ class UploadUserCommand extends AbstractCommand
 
             $this->createTable();
 
-            exit(0);
+            return 0;
         }
 
         if ($this->isDryRun()) {
             $this->console->line('Dry run mode detected. No change will be made to the database.' . PHP_EOL);
 
-            exit(0);
+            return 0;
         }
 
         $this->formatUsers();

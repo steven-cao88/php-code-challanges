@@ -34,7 +34,7 @@ abstract class AbstractCommand implements CommandInterface
         } catch (Exception $e) {
             print $e->getMessage() . PHP_EOL;
 
-            exit(1);
+            return 1;
         }
 
         return $this->process();
